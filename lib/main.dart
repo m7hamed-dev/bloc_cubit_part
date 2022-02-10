@@ -1,4 +1,6 @@
 import 'package:bloc_cubit_part/cubit/counter_cubit.dart';
+import 'package:bloc_cubit_part/cubit/name_cubit.dart';
+import 'package:bloc_cubit_part/cubit/name_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -9,11 +11,17 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => CounterCubit(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<CounterCubit>(
+          create: (context) => CounterCubit(),
+        ),
+        BlocProvider<NameCubit>(
+          create: (context) => NameCubit(),
+        ),
+      ],
       child: MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
@@ -30,6 +38,7 @@ class MyHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('rebuild !!');
     return Scaffold(
       appBar: AppBar(
         title: const Text('home'),
@@ -40,6 +49,17 @@ class MyHomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            BlocBuilder<NameCubit, NameStates>(
+              builder: (context, state) {
+                return Text(state.name);
+              },
+            ),
+            TextFormField(
+              onChanged: (value) {
+                context.read<NameCubit>().setName(value);
+              },
+            ),
+            const SizedBox(height: 40.0),
             BlocBuilder<CounterCubit, CounterState>(
               builder: (context, state) {
                 return Text('${state.counterValue}');
@@ -50,7 +70,9 @@ class MyHomePage extends StatelessWidget {
               children: [
                 IconButton(
                   onPressed: () {
-                    BlocProvider.of<CounterCubit>(context).increment();
+                    final block = context.read<CounterCubit>();
+                    block.increment();
+                    // BlocProvider.of<CounterCubit>(context).increment();
                   },
                   icon: const Icon(Icons.add),
                 ),
